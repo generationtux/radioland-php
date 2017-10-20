@@ -1,6 +1,6 @@
 # Radioland PHP
 
-Pubsub utility with support for async publishing and custom backend providers. Currently SNS is supported out of the box.
+Pubsub utility with support for SNS and custom backend providers.
 
 - [Quick start](#quick-start)
 - [Providers](#providers)
