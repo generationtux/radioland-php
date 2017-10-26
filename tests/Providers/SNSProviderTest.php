@@ -1,7 +1,10 @@
 <?php
 
 use Aws\Sns\SnsClient;
+use Aws\Sns\MessageValidator;
+use Aws\Sns\Message as SnsMessage;
 use Gentux\Radioland\Providers\SNSProvider;
+use Gentux\Radioland\MessageHandlerInterface;
 
 class SNSProviderTest extends TestCase
 {
@@ -12,11 +15,21 @@ class SNSProviderTest extends TestCase
     /** @var Mockery\Mock | SnsClient */
     protected $sns;
 
+    /** @var Mockery\Mock | MessageValidator */
+    protected $validator;
+
+    /** @var Mockery\Mock | MessageHandlerInterface */
+    protected $handler;
+
     public function setUp()
     {
         $this->sns = Mockery::mock(SnsClient::class);
-        $this->provider = new SNSProvider();
+        $this->validator = Mockery::mock(MessageValidator::class);
+        $this->handler = Mockery::mock(MessageHandlerInterface::class);
+
+        $this->provider = new SNSProvider([], $this->handler);
         $this->provider->setClient($this->sns);
+        $this->provider->setMessageValidator($this->validator);
     }
 
     /** @test */
@@ -68,5 +81,65 @@ class SNSProviderTest extends TestCase
             ['MessageId' => '1'],
             ['MessageId' => '2'],
         ], $result);
+    }
+
+    /** @test */
+    public function will_confirm_subscription_when_requested()
+    {
+        $headers = ['x-amz-sns-message-type' => 'SubscriptionConfirmation'];
+        $body = json_encode($data = [
+            "Type" => "SubscriptionConfirmation",
+            "MessageId" => "id-123",
+            "Token" => "token-123",
+            "TopicArn" => "arn-123",
+            "Message" => "foobar",
+            "SubscribeURL" => "https://subscribe.com",
+            "Timestamp" => "2012-04-26T20:45:04.751Z",
+            "SignatureVersion" => "1",
+            "Signature" => "sig-123",
+            "SigningCertURL" => "https://sign.com"
+        ]);
+
+        $this->validator->shouldReceive('validate')->once()->withArgs(function (SnsMessage $arg) use ($data) {
+            return $arg->toArray() == $data;
+        })->andReturn(true);
+
+        $this->sns->shouldReceive('confirmSubscription')->once()->with([
+            'Token' => 'token-123',
+            'TopicArn' => 'arn-123'
+        ])->andReturn(['provider' => 'message']);
+
+        $result = $this->provider->listen($headers, $body);
+        $this->assertSame(['provider' => 'message'], $result);
+    }
+
+    /** @test */
+    public function will_forward_notifications_to_the_handler()
+    {
+        $headers = ['x-amz-sns-message-type' => 'SubscriptionConfirmation'];
+        $body = json_encode($data = [
+            "Type" => "Notification",
+            "MessageId" => "id-123",
+            "Token" => "token-123",
+            "TopicArn" => "arn-123",
+            "Message" => "foobar",
+            "SubscribeURL" => "https://subscribe.com",
+            "Timestamp" => "2012-04-26T20:45:04.751Z",
+            "SignatureVersion" => "1",
+            "Signature" => "sig-123",
+            "SigningCertURL" => "https://sign.com"
+        ]);
+
+        $this->validator->shouldReceive('validate')->once()->withArgs(function (SnsMessage $arg) use ($data) {
+            return $arg->toArray() == $data;
+        })->andReturn(true);
+
+        $this->sns->shouldNotReceive('confirmSubscription');
+        $this->handler->shouldReceive('handle')->withARgs(function (\Gentux\Radioland\Message $message) use ($data) {
+            return $message->channel() === $data['TopicArn'];
+        })->once()->andReturn('whatever');
+
+        $result = $this->provider->listen($headers, $body);
+        $this->assertSame('whatever', $result);
     }
 }

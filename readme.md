@@ -1,5 +1,7 @@
 # Radioland PHP
 
+`@todo Document subscription handling.`
+
 Pubsub utility with support for SNS and custom backend providers.
 
 - [Quick start](#quick-start)
