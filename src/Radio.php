@@ -62,4 +62,16 @@ class Radio
     {
         return $this->publishAll($this->collection);
     }
+
+    /**
+     * Listen for and handle message notifications
+     *
+     * @param array  $headers headers from HTTP request
+     * @param string $body body from HTTP request
+     * @return mixed result from provider
+     */
+    public function listen(array $headers, $body)
+    {
+      return $this->provider->listen($headers, $body);
+    }
 }
