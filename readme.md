@@ -76,7 +76,7 @@ See [AWS client configuration](http://docs.aws.amazon.com/aws-sdk-php/v3/guide/g
 
 In order to publish messages, you'll need the Topic ARN you wish to publish to. This will be the `channel` argument to a message, and the data for a message will be JSON encoded. For example
 ```php
-$message = new Gentux\Radiland\Message('arn::some-topic', ['will-be' => 'json-encoded']);
+$message = new Gentux\Radioland\Message('arn::some-topic', ['will-be' => 'json-encoded']);
 
 // will result in a call to SNS with data that looks like
 [
