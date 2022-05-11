@@ -19,10 +19,5 @@
     "classmap": [
       "tests/TestCase.php"
     ]
-  },
-  "autoload-dev": {
-    "classmap": [
-      "tests"
-    ]
   }
 }
