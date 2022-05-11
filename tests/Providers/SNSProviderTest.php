@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use Aws\Sns\SnsClient;
 use Aws\Sns\MessageValidator;
 use Aws\Sns\Message as SnsMessage;

@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use Gentux\Radioland\Radio;
 use Gentux\Radioland\Message;
 use Gentux\Radioland\Providers\ProviderInterface;

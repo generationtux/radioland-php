@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use Gentux\Radioland\Radio;
 use Gentux\Radioland\Laravel\PublishCollectionAfterResponse;
 
